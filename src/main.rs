@@ -1,15 +1,89 @@
+extern crate cursive;
+
+use cursive::theme::{BaseColor, Color, ColorStyle};
+use cursive::vec::Vec2;
+use cursive::views::{Button, Dialog, LinearLayout, TextView};
+use cursive::Cursive;
+use cursive::Printer;
+
 type Grid = Vec<Vec<bool>>;
 
 fn main() {
+  let mut grid = make_default_grid(false);
+  let mut siv = Cursive::default();
+  siv.add_global_callback('q', |s| s.quit());
+  display_curses_grid(&mut siv, &grid);
+  siv.run();
+}
+
+struct BoardView {
+  grid: Grid,
+}
+
+impl BoardView {
+  pub fn new(grid: Grid) -> Self {
+    BoardView { grid }
+  }
+}
+
+impl cursive::view::View for BoardView {
+  fn draw(&self, printer: &Printer) {
+    for y in 0..self.grid[0].len() {
+      for x in 0..self.grid[0].len() {
+        let cell = self.grid[y][x];
+        let text = if cell { "X" } else { " " };
+        let color = if cell {
+          Color::RgbLowRes(4, 4, 2)
+        } else {
+          Color::RgbLowRes(0, 0, 0)
+        };
+        printer.with_color(
+          ColorStyle::new(Color::Dark(BaseColor::Black), color),
+          |printer| printer.print((x, y), text),
+        );
+      }
+    }
+  }
+
+  fn required_size(&mut self, _: Vec2) -> Vec2 {
+    Vec2::new(self.grid[0].len(), self.grid[0].len())
+  }
+}
+
+fn display_curses_grid(siv: &mut cursive::Cursive, grid: &Grid) {
+  siv.add_layer(
+    Dialog::new()
+      .title("Game of Life")
+      .padding((2, 2, 1, 1))
+      .content(LinearLayout::vertical().child(BoardView::new(*grid))),
+  );
+  siv.add_global_callback('n', |s| {
+    s.pop_layer();
+    let mut grid = tick(*grid);
+    s.add_layer(
+      Dialog::new()
+        .title("Game of Life")
+        .padding((2, 2, 1, 1))
+        .content(LinearLayout::vertical().child(BoardView::new(grid))),
+    );
+  });
+}
+
+fn make_default_grid(evens: bool) -> Grid {
   let mut grid = Vec::new();
-  for _ in 0..10 {
+  let size = 50;
+  for _ in 0..size {
     let mut row = Vec::new();
-    for j in 0..10 {
-      row.push(j % 2 == 0);
+    for j in 0..size {
+      if evens {
+        row.push(j % 2 == 0);
+      } else {
+        row.push(j % 2 != 0);
+      }
     }
     grid.push(row);
   }
-  print_grid(grid);
+  grid
 }
 
 fn print_grid(grid: Grid) {
