@@ -9,10 +9,9 @@ use cursive::Printer;
 type Grid = Vec<Vec<bool>>;
 
 fn main() {
-  let mut grid = make_default_grid(false);
   let mut siv = Cursive::default();
   siv.add_global_callback('q', |s| s.quit());
-  display_curses_grid(&mut siv, &grid);
+  display_curses_grid(&mut siv);
   siv.run();
 }
 
@@ -50,21 +49,22 @@ impl cursive::view::View for BoardView {
   }
 }
 
-fn display_curses_grid(siv: &mut cursive::Cursive, grid: &Grid) {
+fn display_curses_grid(siv: &mut cursive::Cursive) {
+  let mut grid = make_default_grid(false);
   siv.add_layer(
     Dialog::new()
       .title("Game of Life")
       .padding((2, 2, 1, 1))
-      .content(LinearLayout::vertical().child(BoardView::new(*grid))),
+      .content(LinearLayout::vertical().child(BoardView::new(grid.to_vec()))),
   );
-  siv.add_global_callback('n', |s| {
+  siv.add_global_callback('n', move |s| {
+    grid = tick(grid.to_vec());
     s.pop_layer();
-    let mut grid = tick(*grid);
     s.add_layer(
       Dialog::new()
         .title("Game of Life")
         .padding((2, 2, 1, 1))
-        .content(LinearLayout::vertical().child(BoardView::new(grid))),
+        .content(LinearLayout::vertical().child(BoardView::new(grid.to_vec()))),
     );
   });
 }
@@ -131,10 +131,10 @@ fn neighbor_data(x: i32, y: i32, grid: &Grid) -> (i32, i32, bool) {
     }
   }
 
-  println!(
-    "x:{},y:{},alive:{},dead:{},cell:{}",
-    x, y, alive, dead, cell
-  );
+  // println!(
+  //   "x:{},y:{},alive:{},dead:{},cell:{}",
+  //   x, y, alive, dead, cell
+  // );
 
   (alive, dead, cell)
 }
