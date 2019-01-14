@@ -11,12 +11,12 @@ type Grid = Vec<Vec<bool>>;
 fn main() {
   let mut siv = Cursive::default();
   siv.add_global_callback('q', |s| s.quit());
-  display_curses_grid(&mut siv);
+  let mut grid = make_default_grid();
+  display_curses_grid(&mut siv, &mut grid);
   siv.run();
 }
 
-fn display_curses_grid(siv: &mut cursive::Cursive) {
-  let mut grid = make_default_grid();
+fn display_curses_grid(siv: &mut cursive::Cursive, grid: &mut Grid) {
   siv.add_layer(
     Dialog::new()
       .title("Game of Life")
@@ -24,7 +24,7 @@ fn display_curses_grid(siv: &mut cursive::Cursive) {
       .content(LinearLayout::vertical().child(BoardView::new(grid.to_vec()))),
   );
   siv.add_global_callback('n', move |s| {
-    grid = tick(grid.to_vec());
+    grid = tick(grid.to_vec()); // <-- error: expected mutable reference, found struct `std::vec::Vec`
     s.pop_layer();
     s.add_layer(
       Dialog::new()
