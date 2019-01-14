@@ -23,8 +23,8 @@ fn display_curses_grid(siv: &mut cursive::Cursive, grid: &mut Grid) {
       .padding((2, 2, 1, 1))
       .content(LinearLayout::vertical().child(BoardView::new(grid.to_vec()))),
   );
-  siv.add_global_callback('n', move |s| {
-    grid = tick(grid.to_vec()); // <-- error: expected mutable reference, found struct `std::vec::Vec`
+  siv.add_global_callback('n', move |s| { // <-- lifetime `'static` required
+    grid = &mut tick(grid.to_vec());
     s.pop_layer();
     s.add_layer(
       Dialog::new()
