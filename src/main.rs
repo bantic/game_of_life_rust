@@ -15,6 +15,43 @@ fn main() {
   siv.run();
 }
 
+fn display_curses_grid(siv: &mut cursive::Cursive) {
+  let mut grid = make_default_grid();
+  siv.add_layer(
+    Dialog::new()
+      .title("Game of Life")
+      .padding((2, 2, 1, 1))
+      .content(LinearLayout::vertical().child(BoardView::new(grid.to_vec()))),
+  );
+  siv.add_global_callback('n', move |s| {
+    grid = tick(grid.to_vec());
+    s.pop_layer();
+    s.add_layer(
+      Dialog::new()
+        .title("Game of Life")
+        .padding((2, 2, 1, 1))
+        .content(LinearLayout::vertical().child(BoardView::new(grid.to_vec()))),
+    );
+  });
+}
+
+pub fn tick(grid: Grid) -> Grid {
+  let len = grid[0].len();
+  let mut new_grid = vec![vec![false; len]; len];
+
+  for y in 0..len {
+    for x in 0..len {
+      let data = neighbor_data(x as i32, y as i32, &grid);
+      new_grid[y][x] = match data {
+        (alive, _, true) if alive < 2 => false,
+        (alive, _, true) => alive == 2 || alive == 3,
+        (alive, _, false) => alive == 3,
+      };
+    }
+  }
+  new_grid
+}
+
 struct BoardView {
   grid: Grid,
 }
@@ -47,26 +84,6 @@ impl cursive::view::View for BoardView {
   fn required_size(&mut self, _: Vec2) -> Vec2 {
     Vec2::new(self.grid[0].len(), self.grid[0].len())
   }
-}
-
-fn display_curses_grid(siv: &mut cursive::Cursive) {
-  let mut grid = make_default_grid();
-  siv.add_layer(
-    Dialog::new()
-      .title("Game of Life")
-      .padding((2, 2, 1, 1))
-      .content(LinearLayout::vertical().child(BoardView::new(grid.to_vec()))),
-  );
-  siv.add_global_callback('n', move |s| {
-    grid = tick(grid.to_vec());
-    s.pop_layer();
-    s.add_layer(
-      Dialog::new()
-        .title("Game of Life")
-        .padding((2, 2, 1, 1))
-        .content(LinearLayout::vertical().child(BoardView::new(grid.to_vec()))),
-    );
-  });
 }
 
 fn make_default_grid() -> Grid {
@@ -133,23 +150,6 @@ fn neighbor_data(x: i32, y: i32, grid: &Grid) -> (i32, i32, bool) {
   // );
 
   (alive, dead, cell)
-}
-
-pub fn tick(grid: Grid) -> Grid {
-  let len = grid[0].len();
-  let mut new_grid = vec![vec![false; len]; len];
-
-  for y in 0..len {
-    for x in 0..len {
-      let data = neighbor_data(x as i32, y as i32, &grid);
-      new_grid[y][x] = match data {
-        (alive, _, true) if alive < 2 => false,
-        (alive, _, true) => alive == 2 || alive == 3,
-        (alive, _, false) => alive == 3,
-      };
-    }
-  }
-  new_grid
 }
 
 #[cfg(test)]
