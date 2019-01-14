@@ -2,7 +2,7 @@ extern crate cursive;
 
 use cursive::theme::{BaseColor, Color, ColorStyle};
 use cursive::vec::Vec2;
-use cursive::views::{Button, Dialog, LinearLayout, TextView};
+use cursive::views::{Dialog, LinearLayout};
 use cursive::Cursive;
 use cursive::Printer;
 
@@ -50,7 +50,7 @@ impl cursive::view::View for BoardView {
 }
 
 fn display_curses_grid(siv: &mut cursive::Cursive) {
-  let mut grid = make_default_grid(false);
+  let mut grid = make_default_grid();
   siv.add_layer(
     Dialog::new()
       .title("Game of Life")
@@ -69,17 +69,13 @@ fn display_curses_grid(siv: &mut cursive::Cursive) {
   });
 }
 
-fn make_default_grid(evens: bool) -> Grid {
+fn make_default_grid() -> Grid {
   let mut grid = Vec::new();
   let size = 50;
   for _ in 0..size {
     let mut row = Vec::new();
     for j in 0..size {
-      if evens {
-        row.push(j % 2 == 0);
-      } else {
-        row.push(j % 2 != 0);
-      }
+      row.push(j % 2 == 0 || j % 7 == 0);
     }
     grid.push(row);
   }
