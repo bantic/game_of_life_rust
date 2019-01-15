@@ -11,12 +11,12 @@ type Grid = Vec<Vec<bool>>;
 fn main() {
   let mut siv = Cursive::default();
   siv.add_global_callback('q', |s| s.quit());
-  display_curses_grid(&mut siv);
+  let grid = make_default_grid();
+  display_curses_grid(&mut siv, grid);
   siv.run();
 }
 
-fn display_curses_grid(siv: &mut cursive::Cursive) {
-  let mut grid = make_default_grid();
+fn display_curses_grid(siv: &mut cursive::Cursive, mut grid: Grid) {
   siv.add_layer(
     Dialog::new()
       .title("Game of Life")
